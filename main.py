@@ -8,7 +8,6 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 display = pygame.Surface((WIDTH, HEIGHT))
 
 clock = pygame.time.Clock()
-running = True
 
 pieces = {}
 for color in os.listdir(const.PIECES_PATH):
@@ -35,7 +34,10 @@ def redrawGameWindow():
     screen.blit(display, (0, 0))
     pygame.display.update()
 
+running = True
 while running:
+    clock.tick(const.FPS)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -43,11 +45,10 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_QUIT:
                 running = False
-    
-    mouse_pos = pygame.mouse.get_pos()
-    mouse_clicked = pygame.mouse.get_pressed()[0]
-    if (mouse_clicked):
-        board.check_collision(turn, mouse_pos)
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            turn = board.check_selection(turn, mouse_pos)
 
     redrawGameWindow()
 pygame.quit()

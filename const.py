@@ -3,6 +3,8 @@ import pygame
 BOARD_IMAGE_PATH = "assets/images/board.png"
 PIECES_PATH = "assets/images/pieces"
 
+FPS = 24
+
 TILE_SIZE = 48
 BOARD_BORDER = 9
 

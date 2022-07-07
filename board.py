@@ -63,24 +63,53 @@ class Board:
             for col in range(self.columns):
                 if self.board[row][col] != None:
                     self.board[row][col].selected = False
+    
+    def update_move_lists(self):
+        for row in range(self.rows):
+            for col in range(self.columns):
+                if self.board[row][col] != None:
+                    self.board[row][col].update_valid_moves(self.board)
+
+    def move_piece(self, pos, new_pos):
+        self.board[pos[1]][pos[0]].change_pos(new_pos)
+        self.board[new_pos[1]][new_pos[0]] = self.board[pos[1]][pos[0]]
+        self.board[pos[1]][pos[0]] = None
+
 
     def check_selection(self, turn, mouse_pos):
-        self.reset_selection()
-
         mx = mouse_pos[0]
         my = mouse_pos[1]
         if (self.board_rect.collidepoint(mx, my)):
             m_row = (my - self.board_rect.y) // const.TILE_SIZE
             m_column = (mx - self.board_rect.x) // const.TILE_SIZE
 
-            m_piece = self.board[m_row][m_column]
-            if m_piece != None and m_piece.color == turn:
-                if m_piece.color == turn:
-                    m_piece.selected = True
-                    self.selected_piece = m_piece
-    
-    def move_piece(self, turn, mouse_pos):
-        pass
+            self.update_move_lists()
+            if self.selected_piece == None:
+                self.reset_selection()
+
+                m_piece = self.board[m_row][m_column]
+                if m_piece != None and m_piece.color == turn:
+                    if m_piece.color == turn:
+                        m_piece.selected = True
+                        self.selected_piece = m_piece
+            else:
+                m_pos = (m_column, m_row)
+                if m_pos in self.selected_piece.move_list:
+                    if self.board[m_row][m_column] == None or self.board[m_row][m_column].color != self.selected_piece.color:
+                        self.move_piece(self.selected_piece.get_pos(), m_pos)
+                        self.reset_selection()
+
+                        if turn == "b":
+                            return "w"
+                        else:
+                            return "b"
+                elif self.board[m_row][m_column] == self.selected_piece:
+                    self.reset_selection()
+                elif self.board[m_row][m_column] != None and self.board[m_row][m_column].color == self.selected_piece.color:
+                    self.reset_selection()
+                    self.board[m_row][m_column].selected = True
+                    self.selected_piece = self.board[m_row][m_column]
+            return turn
 
     def draw(self, display):
         display.blit(self.board_image, self.rect)
@@ -95,6 +124,5 @@ class Board:
         if (self.selected_piece != None):
             self.selected_piece.draw(display, [self.rect.x + const.BOARD_BORDER, self.rect.y + const.BOARD_BORDER])
 
-            print(self.selected_piece.valid_moves(self.board))
-            for row, col in self.selected_piece.valid_moves(self.board):
+            for row, col in self.selected_piece.move_list:
                 display.blit(self.dot_images[self.selected_piece.color], (row*const.TILE_SIZE + offset[0], col*const.TILE_SIZE + offset[1]))

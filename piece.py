@@ -45,14 +45,17 @@ class Piece:
 
         self.outline = [(p[0]+ self.get_x() + offset[0], p[1]+ self.get_y() + offset[1]) for p in image_mask.outline()]
 
+    def get_pos(self):
+        return (self.column, self.row)
+
     def change_pos(self, pos):
-        self.row = pos[0]
-        self.column = pos[1]
+        self.row = pos[1]
+        self.column = pos[0]
 
         self.update_outline()
 
     def __str__(self):
-        return str(self.column) + " " + str(self.row)
+        return str(self.img) + " " + str(self.color) + " " + str(self.column) + " " + str(self.row)
 
 
 class Bishop(Piece):
