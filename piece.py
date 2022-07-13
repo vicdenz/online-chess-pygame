@@ -80,7 +80,6 @@ class Pawn(Piece):
             dir = -1
 
         try:
-            print(1)
             if i < 7:
                 p = board[i + dir][j]
                 if p == None:
@@ -90,7 +89,6 @@ class Pawn(Piece):
 
         # DIAGONAL
         try:
-            print(2)
             if j < 7:
                 p = board[i + dir][j + 1]
                 if p != None:
@@ -106,7 +104,6 @@ class Pawn(Piece):
             pass
 
         try:
-            print(3)
             if not self.moved:
                 p = board[i + (2*dir)][j]
                 if p == None:
