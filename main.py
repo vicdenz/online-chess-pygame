@@ -48,7 +48,7 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
-            turn = board.check_selection(turn, mouse_pos)
+            turn = board.select(turn, mouse_pos)
 
     redrawGameWindow()
 pygame.quit()
