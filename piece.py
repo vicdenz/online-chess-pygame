@@ -39,7 +39,7 @@ class Piece:
 
         if self.selected:
             pygame.draw.lines(display, const.OUTLINE_COLOR, False, self.outline, 5)
-        elif self.attacked:
+        if self.attacked:
             pygame.draw.lines(display, const.WARNING_COLOR, False, self.outline, 5)
 
         display.blit(self.image, (self.get_x() + offset[0], self.get_y() + offset[1]))
@@ -55,7 +55,6 @@ class Piece:
     def change_pos(self, pos):
         self.row = pos[0]
         self.column = pos[1]
-        self.moved = True
 
         self.update_outline()
 
@@ -112,6 +111,30 @@ class Pawn(Piece):
                 if p == None:
                     if board[r + dir][c] == None:
                         moves.append((r + (2*dir), c))
+        except:
+            pass
+
+        return moves
+    
+    def attack_moves(self, board):
+        r = self.row
+        c = self.column
+
+        moves = []
+        if self.color == "b":
+            dir = 1
+        else:
+            dir = -1
+
+        # DIAGONAL
+        try:
+            if c < 7:
+                p = board[r + dir][c + 1]
+                moves.append((r + dir, c + 1))
+
+            if c > 0:
+                p = board[r + dir][c - 1]
+                moves.append((r + dir, c - 1))
         except:
             pass
 
@@ -173,6 +196,9 @@ class Rook(Piece):
                 break
 
         return moves
+    
+    def attack_moves(self, board):
+        return self.valid_moves(board)
 
 # ------------------------------------------------------------ KNIGHT ------------------------------------------------------------
 
@@ -246,6 +272,9 @@ class Knight(Piece):
                 moves.append((r + 1, c + 2))
 
         return moves
+    
+    def attack_moves(self, board):
+        return self.valid_moves(board)
 
 # ---------------------------------------- BISHOP ----------------------------------------
 
@@ -326,6 +355,9 @@ class Bishop(Piece):
             djR -= 1
 
         return moves
+    
+    def attack_moves(self, board):
+        return self.valid_moves(board)
 
 # ---------------------------------------- QUEEN ----------------------------------------
 
@@ -450,6 +482,9 @@ class Queen(Piece):
                 break
 
         return moves
+    
+    def attack_moves(self, board):
+        return self.valid_moves(board)
 
 # ---------------------------------------- KING ----------------------------------------
 
@@ -515,3 +550,6 @@ class King(Piece):
                 moves.append((r, c + 1))
 
         return moves
+    
+    def attack_moves(self, board):
+        return self.valid_moves(board)
