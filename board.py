@@ -34,10 +34,10 @@ class Board:
 
         self.board[7][0] = Rook(7, 0, "w", pieces)
         self.board[7][1] = Knight(7, 1, "w", pieces)
-        self.board[7][2] = Bishop(7, 2, "w", pieces)
-        self.board[7][3] = Queen(7, 3, "w", pieces)
+        # self.board[7][2] = Bishop(7, 2, "w", pieces)
+        # self.board[7][3] = Queen(7, 3, "w", pieces)
         self.board[7][4] = King(7, 4, "w", pieces)
-        self.board[7][5] = Bishop(7, 5, "w", pieces)
+        # self.board[7][5] = Bishop(7, 5, "w", pieces)
         self.board[7][6] = Knight(7, 6, "w", pieces)
         self.board[7][7] = Rook(7, 7, "w", pieces)
 
@@ -71,10 +71,33 @@ class Board:
                 if self.board[row][column] != None:
                     self.board[row][column].update_valid_moves(self.board)
 
+                    # CASTLING
+                    if self.board[row][column].king and not self.board[row][column].moved and not self.king_check(self.board[row][column].color):
+                        for rook_col in (0, -1):
+                            rook = self.board[row][rook_col]
+                            if type(rook) == Rook and not rook.moved:
+                                for col in range(rook.column+1+rook_col*2, self.board[row][column].column, 1+rook_col*2):
+                                    if self.board[row][col] != None:
+                                        break
+                                else:
+                                    self.board[row][column].move_list.append((row, col-1-rook_col*2))
+
     def move_piece(self, pos, new_pos):
         self.board[pos[0]][pos[1]].change_pos(new_pos)
         self.board[new_pos[0]][new_pos[1]] = self.board[pos[0]][pos[1]]
         self.board[pos[0]][pos[1]] = None
+
+        return self.board[new_pos[0]][new_pos[1]]
+    
+    def move_board(self, pos, new_pos):
+        # CASTLING
+        if self.board[pos[0]][pos[1]].king and abs(pos[1]-new_pos[1]) == 2:
+            self.move_piece(pos, new_pos)
+
+            rook_side = int(self.board[new_pos[0]][new_pos[1]].col > self.columns//2)
+            self.move_piece((pos[0], rook_side*(self.columns-1)), (pos[0], new_pos[1]-1+rook_side*2))
+        else:
+            self.move_piece(pos, new_pos)
 
     def king_check(self, turn):
         king = None
@@ -114,8 +137,18 @@ class Board:
                     if self.board[m_row][m_column] == None or self.board[m_row][m_column].color != self.selected_piece.color:
                         start_pos = self.selected_piece.get_pos()
                         m_piece = self.board[m_row][m_column]
-                        self.move_piece(start_pos, m_pos)
 
+                        # CASTLING
+                        if self.board[start_pos[0]][start_pos[1]].king and abs(start_pos[1]-m_column) == 2:
+                            king = self.move_piece(start_pos, m_pos)
+
+                            rook_side = int(king.column > self.columns//2)
+                            rook = self.board[m_row][rook_side*(self.columns-1)]
+                            self.move_piece((rook.row, rook.column), (king.row, king.column+1-rook_side*2))
+                        else:
+                            self.move_piece(start_pos, m_pos)
+
+                        #RESET KING IF CHECKED
                         if self.king_check(turn):
                             self.move_piece(m_pos, start_pos)
                             self.board[m_row][m_column] = m_piece
@@ -147,7 +180,6 @@ class Board:
 
         if self.selected_piece != None:
             for row, column in self.selected_piece.move_list:
-                print(self.board[row][column])
                 if self.board[row][column] == None:
                     display.blit(self.dot_images[self.selected_piece.color], (column*const.TILE_SIZE + offset[0], row*const.TILE_SIZE + offset[1]))
 
