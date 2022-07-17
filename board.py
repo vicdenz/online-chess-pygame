@@ -23,38 +23,43 @@ class Board:
         self.board[0][6] = Knight(0, 6, "b", pieces)
         self.board[0][7] = Rook(0, 7, "b", pieces)
 
-        self.board[1][0] = Pawn(1, 0, "b", pieces)
-        self.board[1][1] = Pawn(1, 1, "b", pieces)
-        self.board[1][2] = Pawn(1, 2, "b", pieces)
-        self.board[1][3] = Pawn(1, 3, "b", pieces)
-        self.board[1][4] = Pawn(1, 4, "b", pieces)
-        self.board[1][5] = Pawn(1, 5, "b", pieces)
-        self.board[1][6] = Pawn(1, 6, "b", pieces)
-        self.board[1][7] = Pawn(1, 7, "b", pieces)
+        # self.board[1][0] = Pawn(1, 0, "b", pieces)
+        # self.board[1][1] = Pawn(1, 1, "b", pieces)
+        # self.board[1][2] = Pawn(1, 2, "b", pieces)
+        # self.board[1][3] = Pawn(1, 3, "b", pieces)
+        # self.board[1][4] = Pawn(1, 4, "b", pieces)
+        # self.board[1][5] = Pawn(1, 5, "b", pieces)
+        # self.board[1][6] = Pawn(1, 6, "b", pieces)
+        # self.board[1][7] = Pawn(1, 7, "b", pieces)
 
         self.board[7][0] = Rook(7, 0, "w", pieces)
         self.board[7][1] = Knight(7, 1, "w", pieces)
-        # self.board[7][2] = Bishop(7, 2, "w", pieces)
-        # self.board[7][3] = Queen(7, 3, "w", pieces)
+        self.board[7][2] = Bishop(7, 2, "w", pieces)
+        self.board[7][3] = Queen(7, 3, "w", pieces)
         self.board[7][4] = King(7, 4, "w", pieces)
-        # self.board[7][5] = Bishop(7, 5, "w", pieces)
+        self.board[7][5] = Bishop(7, 5, "w", pieces)
         self.board[7][6] = Knight(7, 6, "w", pieces)
         self.board[7][7] = Rook(7, 7, "w", pieces)
 
-        self.board[6][0] = Pawn(6, 0, "w", pieces)
-        self.board[6][1] = Pawn(6, 1, "w", pieces)
-        self.board[6][2] = Pawn(6, 2, "w", pieces)
-        self.board[6][3] = Pawn(6, 3, "w", pieces)
-        self.board[6][4] = Pawn(6, 4, "w", pieces)
-        self.board[6][5] = Pawn(6, 5, "w", pieces)
-        self.board[6][6] = Pawn(6, 6, "w", pieces)
-        self.board[6][7] = Pawn(6, 7, "w", pieces)
+        # self.board[6][0] = Pawn(6, 0, "w", pieces)
+        # self.board[6][1] = Pawn(6, 1, "w", pieces)
+        # self.board[6][2] = Pawn(6, 2, "w", pieces)
+        # self.board[6][3] = Pawn(6, 3, "w", pieces)
+        # self.board[6][4] = Pawn(6, 4, "w", pieces)
+        # self.board[6][5] = Pawn(6, 5, "w", pieces)
+        # self.board[6][6] = Pawn(6, 6, "w", pieces)
+        # self.board[6][7] = Pawn(6, 7, "w", pieces)
 
         self.selected_piece = None
+
+        self.attack_move_list = {"b":set(), "w":set()}
 
     def center_board(self, centerx, centery):
         self.rect.center = (centerx, centery)
         self.board_rect.center = (centerx, centery)
+    
+    def invert_color(self, color):
+        return "b" if color == "w" else "w"
 
     def reset_selection(self):
         self.selected_piece = None
@@ -99,21 +104,45 @@ class Board:
         else:
             self.move_piece(pos, new_pos)
 
+    def update_attack_move_lists(self):
+        self.attack_move_list = {"b":set(), "w":set()}
+        for row in self.board:
+            for piece in row:
+                if piece != None:
+                        for move in piece.attack_moves(self.board):
+                            self.attack_move_list[piece.color].add(move)
+
     def king_check(self, turn):
         king = None
-        attack_move_list = []
         for row in self.board:
             for piece in row:
                 if piece != None:
                     if piece.color == turn and piece.king:
                         king = piece
-                    elif piece.color != turn:
-                        attack_move_list += piece.attack_moves(self.board)
-        
-        if king.get_pos() in attack_move_list:
+
+        self.update_attack_move_lists()        
+        if king.get_pos() in self.attack_move_list[king.color]:
             king.attacked = True
             return True
         return False
+
+    # Returns which color WON
+    def checkmate(self):
+        kings = []
+        for row in self.board:
+            for piece in row:
+                if piece != None and piece.king:
+                        kings.append(piece)
+        
+        self.update_move_lists()
+        self.update_attack_move_lists()
+        for king in kings:
+            enemy_color = self.invert_color(king.color)
+            if king.get_pos() in self.attack_move_list[enemy_color]:
+                if set(king.move_list).issubset(self.attack_move_list[enemy_color]):
+                    king.attacked = True
+                    return enemy_color
+
 
     def select(self, turn, mouse_pos):
         mx = mouse_pos[0]
@@ -152,14 +181,12 @@ class Board:
                         if self.king_check(turn):
                             self.move_piece(m_pos, start_pos)
                             self.board[m_row][m_column] = m_piece
+                            
                             return turn
 
                         self.selected_piece.moved = True
                         self.reset_selection()
-                        if turn == "b":
-                            return "w"
-                        else:
-                            return "b"
+                        return self.invert_color(turn)
                 elif self.board[m_row][m_column] == self.selected_piece:#reset the board if you click on the same piece
                     self.reset_selection()
                 elif self.board[m_row][m_column] != None and self.board[m_row][m_column].color == self.selected_piece.color:#if you click on a different piece of your color, change the selected piece
