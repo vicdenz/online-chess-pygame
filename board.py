@@ -15,12 +15,12 @@ class Board:
         self.board = [[None for x in range(self.columns)] for y in range(self.rows)]
 
         self.board[0][0] = Rook(0, 0, "b", pieces)
-        self.board[0][1] = Knight(0, 1, "b", pieces)
-        self.board[0][2] = Bishop(0, 2, "b", pieces)
-        self.board[0][3] = Queen(0, 3, "b", pieces)
+        # self.board[0][1] = Knight(0, 1, "b", pieces)
+        # self.board[0][2] = Bishop(0, 2, "b", pieces)
+        # self.board[0][3] = Queen(0, 3, "b", pieces)
         self.board[0][4] = King(0, 4, "b", pieces)
-        self.board[0][5] = Bishop(0, 5, "b", pieces)
-        self.board[0][6] = Knight(0, 6, "b", pieces)
+        # self.board[0][5] = Bishop(0, 5, "b", pieces)
+        # self.board[0][6] = Knight(0, 6, "b", pieces)
         self.board[0][7] = Rook(0, 7, "b", pieces)
 
         # self.board[1][0] = Pawn(1, 0, "b", pieces)
@@ -32,14 +32,14 @@ class Board:
         # self.board[1][6] = Pawn(1, 6, "b", pieces)
         # self.board[1][7] = Pawn(1, 7, "b", pieces)
 
-        self.board[7][0] = Rook(7, 0, "w", pieces)
-        self.board[7][1] = Knight(7, 1, "w", pieces)
-        self.board[7][2] = Bishop(7, 2, "w", pieces)
+        # self.board[7][0] = Rook(7, 0, "w", pieces)
+        # self.board[7][1] = Knight(7, 1, "w", pieces)
+        # self.board[7][2] = Bishop(7, 2, "w", pieces)
         self.board[7][3] = Queen(7, 3, "w", pieces)
         self.board[7][4] = King(7, 4, "w", pieces)
-        self.board[7][5] = Bishop(7, 5, "w", pieces)
-        self.board[7][6] = Knight(7, 6, "w", pieces)
-        self.board[7][7] = Rook(7, 7, "w", pieces)
+        # self.board[7][5] = Bishop(7, 5, "w", pieces)
+        # self.board[7][6] = Knight(7, 6, "w", pieces)
+        # self.board[7][7] = Rook(7, 7, "w", pieces)
 
         # self.board[6][0] = Pawn(6, 0, "w", pieces)
         # self.board[6][1] = Pawn(6, 1, "w", pieces)
@@ -53,6 +53,7 @@ class Board:
         self.selected_piece = None
 
         self.attack_move_list = {"b":set(), "w":set()}
+        self.last_moved_piece = [(), ()]
 
     def center_board(self, centerx, centery):
         self.rect.center = (centerx, centery)
@@ -109,8 +110,8 @@ class Board:
         for row in self.board:
             for piece in row:
                 if piece != None:
-                        for move in piece.attack_moves(self.board):
-                            self.attack_move_list[piece.color].add(move)
+                    for move in piece.attack_moves(self.board):
+                        self.attack_move_list[piece.color].add(move)
 
     def king_check(self, turn):
         king = None
@@ -120,13 +121,13 @@ class Board:
                     if piece.color == turn and piece.king:
                         king = piece
 
-        self.update_attack_move_lists()        
-        if king.get_pos() in self.attack_move_list[king.color]:
+        self.update_attack_move_lists()
+        if king.get_pos() in self.attack_move_list[self.invert_color(king.color)]:
             king.attacked = True
             return True
         return False
 
-    # Returns which color WON
+    # Returns which color WON or "s" if it's a stalemate.
     def checkmate(self):
         kings = []
         for row in self.board:
@@ -138,11 +139,12 @@ class Board:
         self.update_attack_move_lists()
         for king in kings:
             enemy_color = self.invert_color(king.color)
-            if king.get_pos() in self.attack_move_list[enemy_color]:
-                if set(king.move_list).issubset(self.attack_move_list[enemy_color]):
+            if set(king.move_list).issubset(self.attack_move_list[enemy_color]):
+                if king.get_pos() in self.attack_move_list[enemy_color]:
                     king.attacked = True
                     return enemy_color
-
+                else:
+                    return "s"
 
     def select(self, turn, mouse_pos):
         mx = mouse_pos[0]
@@ -168,7 +170,9 @@ class Board:
                         m_piece = self.board[m_row][m_column]
 
                         # CASTLING
+                        castling = False
                         if self.board[start_pos[0]][start_pos[1]].king and abs(start_pos[1]-m_column) == 2:
+                            castling = True
                             king = self.move_piece(start_pos, m_pos)
 
                             rook_side = int(king.column > self.columns//2)
@@ -178,12 +182,22 @@ class Board:
                             self.move_piece(start_pos, m_pos)
 
                         #RESET KING IF CHECKED
+                        self.update_move_lists()
                         if self.king_check(turn):
-                            self.move_piece(m_pos, start_pos)
-                            self.board[m_row][m_column] = m_piece
+                            start_pos, m_pos = m_pos, start_pos
+                            if castling:
+                                rook_side = int(king.column > self.columns//2)
+                                rook = self.board[king.row][king.column+1-rook_side*2]
+                                king = self.move_piece(start_pos, m_pos)
+
+                                self.move_piece(rook.get_pos(), (rook.row, rook_side*(self.columns-1)))
+                            else:
+                                self.move_piece(start_pos, m_pos)
+                                self.board[start_pos[0]][start_pos[1]] = m_piece
                             
                             return turn
 
+                        self.last_moved_piece = [start_pos, m_pos]
                         self.selected_piece.moved = True
                         self.reset_selection()
                         return self.invert_color(turn)
@@ -198,7 +212,7 @@ class Board:
                 for row, column in self.selected_piece.move_list:
                     if self.board[row][column] != None and self.board[row][column].color != self.selected_piece.color:
                         self.board[row][column].attacked = True
-            return turn
+        return turn
 
     def draw(self, display):
         display.blit(self.board_image, self.rect)

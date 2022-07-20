@@ -43,15 +43,18 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_QUIT:
+            if event.key == pygame.K_LCTRL:
                 running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             turn = board.select(turn, mouse_pos)
-            if (winner := board.checkmate()):
+            if (result := board.checkmate()):
                 redrawGameWindow()
-                print("WHITE" if winner == "w" else "BLACK", "has won!")
+                if result == "s":
+                    print("WHITE" if turn == "w" else "BLACK", "stalemate.")
+                else:
+                    print("WHITE" if result == "w" else "BLACK", "has won!")
                 pygame.time.delay(2000)
                 running = False
 
