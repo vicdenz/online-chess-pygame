@@ -12,6 +12,7 @@ class Piece:
         self.moved = False
         self.selected = False
         self.attacked = False
+        self.changed = False
         self.move_list = []
         self.king = False
         self.pawn = False
@@ -37,6 +38,8 @@ class Piece:
         if offset != [0, 0]:
             self.update_outline(offset)
 
+        if self.changed:
+            pygame.draw.lines(display, const.LAST_MOVE_COLOR, False, self.outline, 5)
         if self.selected:
             pygame.draw.lines(display, const.OUTLINE_COLOR, False, self.outline, 5)
         if self.attacked:

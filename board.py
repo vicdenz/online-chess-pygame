@@ -14,14 +14,14 @@ class Board:
         self.columns = 8
         self.board = [[None for x in range(self.columns)] for y in range(self.rows)]
 
-        self.board[0][0] = Rook(0, 0, "b", pieces)
+        # self.board[0][0] = Rook(0, 0, "b", pieces)
         # self.board[0][1] = Knight(0, 1, "b", pieces)
         # self.board[0][2] = Bishop(0, 2, "b", pieces)
         # self.board[0][3] = Queen(0, 3, "b", pieces)
         self.board[0][4] = King(0, 4, "b", pieces)
         # self.board[0][5] = Bishop(0, 5, "b", pieces)
         # self.board[0][6] = Knight(0, 6, "b", pieces)
-        self.board[0][7] = Rook(0, 7, "b", pieces)
+        # self.board[0][7] = Rook(0, 7, "b", pieces)
 
         # self.board[1][0] = Pawn(1, 0, "b", pieces)
         # self.board[1][1] = Pawn(1, 1, "b", pieces)
@@ -53,7 +53,7 @@ class Board:
         self.selected_piece = None
 
         self.attack_move_list = {"b":set(), "w":set()}
-        self.last_moved_piece = [(), ()]
+        self.last_moved_piece = []
 
     def center_board(self, centerx, centery):
         self.rect.center = (centerx, centery)
@@ -197,9 +197,11 @@ class Board:
                             
                             return turn
 
-                        self.last_moved_piece = [start_pos, m_pos]
                         self.selected_piece.moved = True
                         self.reset_selection()
+                        
+                        self.last_moved_piece = [start_pos, m_pos]
+
                         return self.invert_color(turn)
                 elif self.board[m_row][m_column] == self.selected_piece:#reset the board if you click on the same piece
                     self.reset_selection()
@@ -218,6 +220,10 @@ class Board:
         display.blit(self.board_image, self.rect)
 
         offset = [self.rect.x + const.BOARD_BORDER, self.rect.y + const.BOARD_BORDER]
+
+        if self.selected_piece == None:
+            for pos in self.last_moved_piece:
+                pygame.draw.rect(display, const.LAST_MOVE_COLOR, (pos[1]*const.TILE_SIZE + offset[0], pos[0]*const.TILE_SIZE + offset[1], const.TILE_SIZE, const.TILE_SIZE))
 
         if self.selected_piece != None:
             for row, column in self.selected_piece.move_list:
