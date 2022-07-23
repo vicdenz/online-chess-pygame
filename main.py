@@ -50,6 +50,7 @@ while running:
             mouse_pos = pygame.mouse.get_pos()
             turn = board.select(turn, mouse_pos)
             if (result := board.checkmate()):
+                print(result)
                 redrawGameWindow()
                 if result == "s":
                     print("WHITE" if turn == "w" else "BLACK", "stalemate.")

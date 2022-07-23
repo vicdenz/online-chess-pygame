@@ -201,7 +201,72 @@ class Rook(Piece):
         return moves
     
     def attack_moves(self, board):
-        return self.valid_moves(board)
+        r = self.row
+        c = self.column
+
+        moves = []
+
+        # UP
+        for y in range(r - 1, -1, -1):
+            p = board[y][c]
+            if p == None:
+                moves.append((y, c))
+            elif p.color != self.color:
+                moves.append((y, c))
+                if p.king:
+                    if y != 0:
+                        moves.append((y-1, c))
+                else:
+                    break
+            else:
+                break
+
+        # DOWN
+        for y in range(r + 1, 8, 1):
+            p = board[y][c]
+            if p == None:
+                moves.append((y, c))
+            elif p.color != self.color:
+                moves.append((y, c))
+                if p.king:
+                    if y != 7:
+                        moves.append((y+1, c))
+                else:
+                    break
+            else:
+                break
+
+        # LEFT
+        for x in range(c - 1, -1, -1):
+            p = board[r][x]
+            if p == None:
+                moves.append((r, x))
+            elif p.color != self.color:
+                moves.append((r, x))
+                if p.king:
+                    if x != 0:
+                        moves.append((r, x-1))
+                else:
+                    break
+            else:
+                break
+
+        # RIGHT
+        for x in range(c + 1, 8, 1):
+            p = board[r][x]
+            if p == None:
+                moves.append((r, x))
+            elif p.color != self.color:
+                moves.append((r, x))
+                if p.king:
+                    if x != 7:
+                        moves.append((r, x+1))
+                else:
+                    break
+            else:
+                break
+
+        return moves
 
 # ------------------------------------------------------------ KNIGHT ------------------------------------------------------------
 
@@ -360,7 +425,96 @@ class Bishop(Piece):
         return moves
     
     def attack_moves(self, board):
-        return self.valid_moves(board)
+        r = self.row
+        c = self.column
+
+        moves = []
+
+        # TOP RIGHT
+        djL = c + 1
+        djR = c - 1
+        for di in range(r - 1, -1, -1):
+            if djL < 8:
+                p = board[di][djL]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 0 and djL != 7:
+                            moves.append((di-1, djL+1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+            djL += 1
+
+        # TOP LEFT
+        for di in range(r - 1, -1, -1):
+            if djR > -1:
+                p = board[di][djR]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 0 and djR != 0:
+                            moves.append((di-1, djR-1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+            djR -= 1
+
+        # BOTTOM RIGHT
+        djL = c + 1
+        djR = c - 1
+        for di in range(r + 1, 8):
+            if djL < 8:
+                p = board[di][djL]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 7 and djL != 7:
+                            moves.append((di+1, djL+1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+        
+            djL += 1
+        
+        # BOTTOM LEFT
+        for di in range(r + 1, 8):
+            if djR > -1:
+                p = board[di][djR]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 7 and djR != 0:
+                            moves.append((di+1, djL-1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+            djR -= 1
+
+        return moves
 
 # ---------------------------------------- QUEEN ----------------------------------------
 
@@ -487,7 +641,156 @@ class Queen(Piece):
         return moves
     
     def attack_moves(self, board):
-        return self.valid_moves(board)
+        r = self.row
+        c = self.column
+
+        moves = []
+
+        # TOP RIGHT
+        djL = c + 1
+        djR = c - 1
+        for di in range(r - 1, -1, -1):
+            if djL < 8:
+                p = board[di][djL]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 0 and djL != 7:
+                            moves.append((di-1, djL+1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+            djL += 1
+
+        # TOP LEFT
+        for di in range(r - 1, -1, -1):
+            if djR > -1:
+                p = board[di][djR]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 0 and djR != 0:
+                            moves.append((di-1, djR-1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+            djR -= 1
+
+        # BOTTOM RIGHT
+        djL = c + 1
+        djR = c - 1
+        for di in range(r + 1, 8):
+            if djL < 8:
+                p = board[di][djL]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 7 and djL != 7:
+                            moves.append((di+1, djL+1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+        
+            djL += 1
+        
+        # BOTTOM LEFT
+        for di in range(r + 1, 8):
+            if djR > -1:
+                p = board[di][djR]
+                if p == None:
+                    moves.append((di, djL))
+                elif p.color != self.color:
+                    moves.append((di, djL))
+                    if p.king:
+                        if di != 7 and djR != 0:
+                            moves.append((di+1, djL-1))
+                    else:
+                        break
+                else:
+                    break
+            else:
+                break
+
+            djR -= 1
+
+        # UP
+        for y in range(r - 1, -1, -1):
+            p = board[y][c]
+            if p == None:
+                moves.append((y, c))
+            elif p.color != self.color:
+                moves.append((y, c))
+                if p.king:
+                    if y != 0:
+                        moves.append((y-1, c))
+                else:
+                    break
+            else:
+                break
+
+        # DOWN
+        for y in range(r + 1, 8, 1):
+            p = board[y][c]
+            if p == None:
+                moves.append((y, c))
+            elif p.color != self.color:
+                moves.append((y, c))
+                if p.king:
+                    if y != 7:
+                        moves.append((y+1, c))
+                else:
+                    break
+            else:
+                break
+
+        # LEFT
+        for x in range(c - 1, -1, -1):
+            p = board[r][x]
+            if p == None:
+                moves.append((r, x))
+            elif p.color != self.color:
+                moves.append((r, x))
+                if p.king:
+                    if x != 0:
+                        moves.append((r, x-1))
+                else:
+                    break
+            else:
+                break
+
+        # RIGHT
+        for x in range(c + 1, 8, 1):
+            p = board[r][x]
+            if p == None:
+                moves.append((r, x))
+            elif p.color != self.color:
+                moves.append((r, x))
+                if p.king:
+                    if x != 7:
+                        moves.append((r, x+1))
+                else:
+                    break
+            else:
+                break
+
+        return moves
 
 # ---------------------------------------- KING ----------------------------------------
 

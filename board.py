@@ -18,7 +18,7 @@ class Board:
         # self.board[0][1] = Knight(0, 1, "b", pieces)
         # self.board[0][2] = Bishop(0, 2, "b", pieces)
         # self.board[0][3] = Queen(0, 3, "b", pieces)
-        self.board[0][4] = King(0, 4, "b", pieces)
+        # self.board[0][4] = King(0, 4, "b", pieces)
         # self.board[0][5] = Bishop(0, 5, "b", pieces)
         # self.board[0][6] = Knight(0, 6, "b", pieces)
         # self.board[0][7] = Rook(0, 7, "b", pieces)
@@ -35,8 +35,8 @@ class Board:
         # self.board[7][0] = Rook(7, 0, "w", pieces)
         # self.board[7][1] = Knight(7, 1, "w", pieces)
         # self.board[7][2] = Bishop(7, 2, "w", pieces)
-        self.board[7][3] = Queen(7, 3, "w", pieces)
-        self.board[7][4] = King(7, 4, "w", pieces)
+        # self.board[7][3] = Queen(7, 3, "w", pieces)
+        # self.board[7][4] = King(7, 4, "w", pieces)
         # self.board[7][5] = Bishop(7, 5, "w", pieces)
         # self.board[7][6] = Knight(7, 6, "w", pieces)
         # self.board[7][7] = Rook(7, 7, "w", pieces)
@@ -49,6 +49,14 @@ class Board:
         # self.board[6][5] = Pawn(6, 5, "w", pieces)
         # self.board[6][6] = Pawn(6, 6, "w", pieces)
         # self.board[6][7] = Pawn(6, 7, "w", pieces)
+
+        self.board[0][0] = King(0, 0, "w", pieces)
+        self.board[0][1] = Queen(0, 1, "w", pieces)
+        self.board[0][7] = Rook(0, 7, "w", pieces)
+        self.board[6][0] = Rook(6, 0, "w", pieces)
+        self.board[1][5] = Rook(1, 5, "b", pieces)
+        self.board[2][7] = Pawn(2, 7, "b", pieces)
+        self.board[7][7] = King(7, 7, "b", pieces)
 
         self.selected_piece = None
 
@@ -88,6 +96,14 @@ class Board:
                                 else:
                                     self.board[row][column].move_list.append((row, col-1-rook_col*2))
 
+    def update_attack_move_lists(self):
+        self.attack_move_list = {"b":set(), "w":set()}
+        for row in self.board:
+            for piece in row:
+                if piece != None:
+                    for move in piece.attack_moves(self.board):
+                        self.attack_move_list[piece.color].add(move)
+
     def move_piece(self, pos, new_pos):
         self.board[pos[0]][pos[1]].change_pos(new_pos)
         self.board[new_pos[0]][new_pos[1]] = self.board[pos[0]][pos[1]]
@@ -105,15 +121,9 @@ class Board:
         else:
             self.move_piece(pos, new_pos)
 
-    def update_attack_move_lists(self):
-        self.attack_move_list = {"b":set(), "w":set()}
-        for row in self.board:
-            for piece in row:
-                if piece != None:
-                    for move in piece.attack_moves(self.board):
-                        self.attack_move_list[piece.color].add(move)
-
     def king_check(self, turn):
+        self.update_attack_move_lists()
+
         king = None
         for row in self.board:
             for piece in row:
@@ -121,7 +131,6 @@ class Board:
                     if piece.color == turn and piece.king:
                         king = piece
 
-        self.update_attack_move_lists()
         if king.get_pos() in self.attack_move_list[self.invert_color(king.color)]:
             king.attacked = True
             return True
@@ -129,22 +138,40 @@ class Board:
 
     # Returns which color WON or "s" if it's a stalemate.
     def checkmate(self):
-        kings = []
-        for row in self.board:
-            for piece in row:
-                if piece != None and piece.king:
-                        kings.append(piece)
-        
         self.update_move_lists()
         self.update_attack_move_lists()
+
+        kings = []
+        pieces = {"b":[], "w":[]}
+        for row in self.board:
+            for piece in row:
+                if piece != None:
+                    if piece.king:
+                        kings.append(piece)
+                    else:
+                        pieces[piece.color].append(piece)
+        
         for king in kings:
             enemy_color = self.invert_color(king.color)
+            checkmate = False
+
             if set(king.move_list).issubset(self.attack_move_list[enemy_color]):
                 if king.get_pos() in self.attack_move_list[enemy_color]:
-                    king.attacked = True
-                    return enemy_color
+                    checkmate = True
                 else:
-                    return "s"
+                    for piece in pieces[king.color]:
+                        if len(piece.move_list) != 0:
+                            break
+                    else:
+                        return "s"
+
+            if checkmate and self.last_moved_piece != [] and self.last_moved_piece[1] in self.attack_move_list[king.color]:
+                print(self.last_moved_piece[1], self.attack_move_list[king.color])
+                checkmate = False
+
+            if checkmate:
+                king.attacked = True
+                return enemy_color
 
     def select(self, turn, mouse_pos):
         mx = mouse_pos[0]
