@@ -177,10 +177,6 @@ class Board:
                 for piece in pieces[king.color]:
                     possible_moves += piece.move_list
 
-                print(king.color)
-                print(possible_moves)
-                print(checkmate_path)
-
                 for path in checkmate_path:
                     if path in possible_moves:
                         checkmate = False
