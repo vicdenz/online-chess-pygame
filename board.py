@@ -165,9 +165,26 @@ class Board:
                     else:
                         return "s"
 
-            if checkmate and self.last_moved_piece != [] and self.last_moved_piece[1] in self.attack_move_list[king.color]:
-                print(self.last_moved_piece[1], self.attack_move_list[king.color])
-                checkmate = False
+            if checkmate and self.last_moved_piece != []:
+                if self.last_moved_piece[1] in self.attack_move_list[king.color]:
+                    checkmate = False
+                
+                dir_row = 0 if king.row == self.last_moved_piece[1][0] else -1 if king.row > self.last_moved_piece[1][0] else 1
+                dir_column = 0 if king.column == self.last_moved_piece[1][1] else -1 if king.column > self.last_moved_piece[1][1] else 1
+                checkmate_path = [(king.row+(dir_row*m), king.column+(dir_column*m)) for m in range(1, abs(king.row-self.last_moved_piece[1][0]) + abs(king.column-self.last_moved_piece[1][1])-1 * int(dir_row == dir_column))]
+                
+                possible_moves = []
+                for piece in pieces[king.color]:
+                    possible_moves += piece.move_list
+
+                print(king.color)
+                print(possible_moves)
+                print(checkmate_path)
+
+                for path in checkmate_path:
+                    if path in possible_moves:
+                        checkmate = False
+                        break
 
             if checkmate:
                 king.attacked = True
