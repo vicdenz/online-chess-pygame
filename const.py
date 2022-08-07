@@ -1,5 +1,8 @@
 import pygame
 
+SERVER = "localhost"
+PORT = 5555
+
 BOARD_IMAGE_PATH = "assets/images/board.png"
 PIECES_PATH = "assets/images/pieces"
 

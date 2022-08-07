@@ -19,45 +19,51 @@ for color in os.listdir(const.PIECES_PATH):
         pieces[color][filename.split(".")[0]] = const.load_image(file_path).convert()
         pieces[color][filename.split(".")[0]].set_colorkey((0, 0, 0))
 
-board = Board(0, 0, pieces)
-board.center_board(WIDTH/2, HEIGHT/2)
-turn = "w"
-
-def redrawGameWindow():
+def redrawGameWindow(board):
     display.fill((255, 255, 255))
 
     board.draw(display)
 
-    # surf = pygame.transform.scale(display, (WIDTH*const.IMAGE_MULTIPLIER, HEIGHT*const.IMAGE_MULTIPLIER))
-    # surf_rect = surf.get_rect(center=(WIDTH/2, HEIGHT/2))
-    # screen.blit(surf, surf_rect)
-    screen.blit(display, (0, 0))
+    surf = pygame.transform.scale(display, (WIDTH, HEIGHT))
+    surf_rect = surf.get_rect(center=(WIDTH/2, HEIGHT/2))
+    screen.blit(surf, surf_rect)
+
     pygame.display.update()
 
-running = True
-while running:
-    clock.tick(const.FPS)
+def main():
+    running = True
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    board = Board(0, 0)
+    board.center_board(WIDTH/2, HEIGHT/2)
+    turn = "w"
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LCTRL:
+    board.update_pieces(pieces)
+
+    while running:
+        clock.tick(const.FPS)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 running = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            turn = board.select(turn, mouse_pos)
-            if (result := board.checkmate()):
-                print(result)
-                redrawGameWindow()
-                if result == "s":
-                    print("WHITE" if turn == "w" else "BLACK", "stalemate.")
-                else:
-                    print("WHITE" if result == "w" else "BLACK", "has won!")
-                pygame.time.delay(2000)
-                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LCTRL:
+                    running = False
 
-    redrawGameWindow()
-pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                turn = board.select(turn, mouse_pos)
+                if (result := board.checkmate()):
+                    print(result)
+                    redrawGameWindow(board)
+                    if result == "s":
+                        print("WHITE" if turn == "w" else "BLACK", "stalemate.")
+                    else:
+                        print("WHITE" if result == "w" else "BLACK", "has won!")
+                    pygame.time.delay(2000)
+                    running = False
+
+        redrawGameWindow(board)
+    pygame.quit()
+
+main()

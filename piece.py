@@ -3,9 +3,9 @@ import os
 import const
 
 class Piece:
-    img = ""
+    piece = ""
 
-    def __init__(self, row, column, color, pieces):
+    def __init__(self, row, column, color, pieces=None):
         self.row = row
         self.column = column
         self.color = color
@@ -17,7 +17,7 @@ class Piece:
         self.king = False
         self.pawn = False
 
-        self.image = pieces[self.color][self.img]
+        self.image = pygame.Surface((const.TILE_SIZE, const.TILE_SIZE)) if pieces == None else pieces[self.color][self.piece]
 
         self.outline = []
         self.update_outline()
@@ -62,12 +62,12 @@ class Piece:
         self.update_outline()
 
     def __str__(self):
-        return str(self.img) + " " + str(self.color) + " " + str(self.column) + " " + str(self.row)
+        return str(self.piece) + " " + str(self.color) + " " + str(self.column) + " " + str(self.row)
 
 # ---------------------------------------- PAWN ----------------------------------------
 
 class Pawn(Piece):
-    img = "pawn"
+    piece = "pawn"
 
     def __init__(self, row, column, color, pieces):
         super().__init__(row, column, color, pieces)
@@ -146,7 +146,7 @@ class Pawn(Piece):
 # ---------------------------------------- ROOK ----------------------------------------
 
 class Rook(Piece):
-    img = "rook"
+    piece = "rook"
 
     def valid_moves(self, board):
         r = self.row
@@ -271,7 +271,7 @@ class Rook(Piece):
 # ------------------------------------------------------------ KNIGHT ------------------------------------------------------------
 
 class Knight(Piece):
-    img = "knight"
+    piece = "knight"
 
     def valid_moves(self, board):
         r = self.row
@@ -347,7 +347,7 @@ class Knight(Piece):
 # ---------------------------------------- BISHOP ----------------------------------------
 
 class Bishop(Piece):
-    img = "bishop"
+    piece = "bishop"
 
     def valid_moves(self, board):
         r = self.row
@@ -519,7 +519,7 @@ class Bishop(Piece):
 # ---------------------------------------- QUEEN ----------------------------------------
 
 class Queen(Piece):
-    img = "queen"
+    piece = "queen"
 
     def valid_moves(self, board):
         r = self.row
@@ -795,7 +795,7 @@ class Queen(Piece):
 # ---------------------------------------- KING ----------------------------------------
 
 class King(Piece):
-    img = "king"
+    piece = "king"
 
     def __init__(self, row, column, color, pieces):
         super().__init__(row, column, color, pieces)
