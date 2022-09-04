@@ -73,7 +73,6 @@ class Board:
 
         self.attack_move_list = {"b":set(), "w":set()}
         self.last_moved_piece = []
-        self.repeat_move = {"b":[], "w":[]}
 
     def update_pieces(self, pieces):
         for row in self.board:
@@ -141,22 +140,6 @@ class Board:
         self.board[pos[0]][pos[1]] = None
 
         return self.board[new_pos[0]][new_pos[1]]
-    
-    def move_board(self, pos, new_pos):
-        # CASTLING
-        if self.board[pos[0]][pos[1]].king and abs(pos[1]-new_pos[1]) == 2:
-            self.move_piece(pos, new_pos)
-
-            rook_side = int(self.board[new_pos[0]][new_pos[1]].col > self.columns//2)
-            self.move_piece((pos[0], rook_side*(self.columns-1)), (pos[0], new_pos[1]-1+rook_side*2))
-        else:
-            self.move_piece(pos, new_pos)
-        
-        # EN PASSANT
-        if self.board[pos[0]][pos[1]].pawn and pos[1] != new_pos[1] and self.board[new_pos[0]][new_pos[1]] == None:
-            self.move_piece(pos, new_pos)
-
-            self.board[new_pos[0]-(new_pos[0]-pos[0])][new_pos[1]] = None
 
     def king_check(self, turn):
         self.update_attack_move_lists()
@@ -173,7 +156,7 @@ class Board:
             return True
         return False
 
-    # Returns which color WON or "s" if it's a stalemate.
+    # Returns which color WON, "s" if it's a stalemate, or "d" if it's a draw.
     def checkmate(self):
         self.update_move_lists()
         self.update_attack_move_lists()
@@ -188,6 +171,7 @@ class Board:
                     else:
                         pieces[piece.color].append(piece)
         
+        # check if all of the moves of the king are blocked and the king is in the attack move list.
         for king in kings:
             enemy_color = self.invert_color(king.color)
             checkmate = False
@@ -195,33 +179,19 @@ class Board:
             if set(king.move_list).issubset(self.attack_move_list[enemy_color]):
                 if king.get_pos() in self.attack_move_list[enemy_color]:
                     checkmate = True
-                else:
+                else:#check if all of the remaining pieces have no moves left and the king is not in check. Returns stalemate if so.
                     for piece in pieces[king.color]:
                         if len(piece.move_list) != 0:
                             break
                     else:
                         return "s"
-
-            if checkmate and self.last_moved_piece != []:
-                if self.last_moved_piece[1] in self.attack_move_list[king.color]:
-                    checkmate = False
-                
-                dir_row = 0 if king.row == self.last_moved_piece[1][0] else -1 if king.row > self.last_moved_piece[1][0] else 1
-                dir_column = 0 if king.column == self.last_moved_piece[1][1] else -1 if king.column > self.last_moved_piece[1][1] else 1
-                checkmate_path = [(king.row+(dir_row*m), king.column+(dir_column*m)) for m in range(1, abs(king.row-self.last_moved_piece[1][0]) + abs(king.column-self.last_moved_piece[1][1])-1 * int(dir_row == dir_column))]
-                
-                possible_moves = []
-                for piece in pieces[king.color]:
-                    possible_moves += piece.move_list
-
-                for path in checkmate_path:
-                    if path in possible_moves:
-                        checkmate = False
-                        break
-
-            # if self.repeat_move[1] == 2:
-            #     king.attacked = True
-            #     return king.color
+            
+            #Check all piece if they have repeated more than 3 times
+            for row in self.board:
+                for piece in row:
+                    if piece:
+                        if piece.repetitions >= 3:
+                            return "d"
 
             if checkmate:
                 king.attacked = True
@@ -252,17 +222,19 @@ class Board:
 
                         # CASTLING
                         castling = False
+                        en_passant = None
                         if self.selected_piece.king and abs(start_pos[1]-m_column) == 2:
                             castling = True
                             king = self.move_piece(start_pos, m_pos)
 
                             rook_side = int(king.column > self.columns//2)
                             rook = self.board[m_row][rook_side*(self.columns-1)]
-                            self.move_piece((rook.row, rook.column), (king.row, king.column+1-rook_side*2))
+                            self.move_piece(rook.get_pos(), (king.row, king.column+1-rook_side*2))
                         # EN PASSANT
                         elif self.selected_piece.pawn and start_pos[1] != m_column and self.board[m_row][m_column] == None:
                             self.move_piece(start_pos, m_pos)
 
+                            en_passent = self.board[m_row-(m_row-start_pos[0])][m_column]
                             self.board[m_row-(m_row-start_pos[0])][m_column] = None
                         else:
                             self.move_piece(start_pos, m_pos)
@@ -277,6 +249,10 @@ class Board:
                                 king = self.move_piece(start_pos, m_pos)
 
                                 self.move_piece(rook.get_pos(), (rook.row, rook_side*(self.columns-1)))
+                            elif en_passant:
+                                self.move_piece(start_pos, m_pos)
+
+                                self.board[m_row-(m_row-start_pos[0])][m_column] = en_passent                     
                             else:
                                 self.move_piece(start_pos, m_pos)
                                 self.board[start_pos[0]][start_pos[1]] = m_piece
@@ -284,15 +260,15 @@ class Board:
                             return turn
 
                         self.selected_piece.moved = True
+                        
+                        if self.selected_piece.get_pos() == self.selected_piece.last_pos:
+                            self.selected_piece.repetitions += 1
+                        else:
+                            self.selected_piece.repetitions = 0
+                        self.selected_piece.last_pos = start_pos
                         self.reset_selection()
-                        
+
                         self.last_moved_piece = [start_pos, m_pos]
-                        
-                        m_piece = self.board[m_row][m_column]
-                        # if self.repeat_move[m_piece.color] == [] or self.repeat_move[0][1] != self.last_move_piece[1]:
-                        #     self.repeat_move = [self.last_moved_piece, 0]
-                        # else:
-                        #     self.repeat_move[1] += 1
 
                         return self.invert_color(turn)
                 elif self.board[m_row][m_column] == self.selected_piece:#reset the board if you click on the same piece

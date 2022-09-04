@@ -16,8 +16,8 @@ for color in os.listdir(const.PIECES_PATH):
     pieces[color] = {}
     for filename in os.listdir(color_dir):
         file_path = color_dir+"/"+filename
-        pieces[color][filename.split(".")[0]] = const.load_image(file_path).convert()
-        pieces[color][filename.split(".")[0]].set_colorkey((0, 0, 0))
+        pieces[color][filename.split(".")[0]] = const.load_image(file_path).convert_alpha()
+        # pieces[color][filename.split(".")[0]].set_colorkey((0, 0, 0))
 
 def redrawGameWindow(board):
     display.fill((255, 255, 255))
@@ -53,11 +53,16 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 turn = board.select(turn, mouse_pos)
+                # for row in board.board:
+                #     print(row)
+                # print("\n\n\n")
                 if (result := board.checkmate()):
                     print(result)
                     redrawGameWindow(board)
                     if result == "s":
                         print("WHITE" if turn == "w" else "BLACK", "stalemate.")
+                    elif result == "d":
+                        print("DRAW")
                     else:
                         print("WHITE" if result == "w" else "BLACK", "has won!")
                     pygame.time.delay(2000)

@@ -16,6 +16,8 @@ class Piece:
         self.move_list = []
         self.king = False
         self.pawn = False
+        self.last_pos = ()
+        self.repetitions = 0
 
         self.image = pygame.Surface((const.TILE_SIZE, const.TILE_SIZE)) if pieces == None else pieces[self.color][self.piece]
 
