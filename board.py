@@ -4,11 +4,13 @@ import pygame
 
 class Board:
     def __init__(self, x, y, pieces=None):
-        self.board_image = const.load_image(const.BOARD_IMAGE_PATH).convert()
         self.rect = self.board_image.get_rect(x=x, y=y)
         self.board_rect = pygame.Rect(self.rect.x+const.BOARD_BORDER, self.rect.x+const.BOARD_BORDER, self.rect.width-const.BOARD_BORDER*2, self.rect.height-const.BOARD_BORDER*2)
 
+        self.turn = "w"
+
         if pieces:
+            self.board_image = const.load_image(const.BOARD_IMAGE_PATH).convert()
             self.dot_images = {"b": pieces['b']['dot'], "w": pieces['w']['dot']}
 
         self.rows = 8
@@ -67,7 +69,6 @@ class Board:
         # self.board[5][2] = Pawn(5, 2, "w", pieces)
         # self.board[5][3] = Pawn(5, 3, "w", pieces)
         # self.board[5][4] = Pawn(5, 4, "w", pieces)
-
 
         self.selected_piece = None
 
@@ -197,7 +198,7 @@ class Board:
                 king.attacked = True
                 return enemy_color
 
-    def select(self, turn, mouse_pos):
+    def select(self, mouse_pos):
         mx = mouse_pos[0]
         my = mouse_pos[1]
         if self.board_rect.collidepoint(mx, my):
@@ -209,8 +210,8 @@ class Board:
                 self.reset_selection()
 
                 m_piece = self.board[m_row][m_column]
-                if m_piece != None and m_piece.color == turn:
-                    if m_piece.color == turn:
+                if m_piece != None and m_piece.color == self.turn:
+                    if m_piece.color == self.turn:
                         m_piece.selected = True
                         self.selected_piece = m_piece
             else:
@@ -241,7 +242,7 @@ class Board:
 
                         #RESET KING IF CHECKED
                         self.update_move_lists()
-                        if self.king_check(turn):
+                        if self.king_check(self.turn):
                             start_pos, m_pos = m_pos, start_pos
                             if castling:
                                 rook_side = int(king.column > self.columns//2)
@@ -257,7 +258,7 @@ class Board:
                                 self.move_piece(start_pos, m_pos)
                                 self.board[start_pos[0]][start_pos[1]] = m_piece
                             
-                            return turn
+                            return self.turn
 
                         self.selected_piece.moved = True
                         
@@ -270,7 +271,9 @@ class Board:
 
                         self.last_moved_piece = [start_pos, m_pos]
 
-                        return self.invert_color(turn)
+                        self.turn = self.invert_color(self.turn)
+                        return self.turn
+
                 elif self.board[m_row][m_column] == self.selected_piece:#reset the board if you click on the same piece
                     self.reset_selection()
                 elif self.board[m_row][m_column] != None and self.board[m_row][m_column].color == self.selected_piece.color:#if you click on a different piece of your color, change the selected piece
@@ -282,7 +285,7 @@ class Board:
                 for row, column in self.selected_piece.move_list:
                     if self.board[row][column] != None and self.board[row][column].color != self.selected_piece.color:
                         self.board[row][column].attacked = True
-        return turn
+        return self.turn
 
     def draw(self, display):
         display.blit(self.board_image, self.rect)

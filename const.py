@@ -2,8 +2,7 @@ import pygame
 
 PORT = 5555
 
-BOARD_IMAGE_PATH = "assets/images/board.png"
-PIECES_PATH = "assets/images/pieces"
+IMAGE_PATH = "assets/images"
 
 FPS = 24
 

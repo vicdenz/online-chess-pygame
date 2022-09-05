@@ -1,5 +1,6 @@
 import pygame
 from board import Board
+from network import Network
 import const, os
 
 pygame.display.set_caption("Chess Game")
@@ -9,15 +10,25 @@ display = pygame.Surface((WIDTH, HEIGHT))
 
 clock = pygame.time.Clock()
 
-pieces = {}
-for color in os.listdir(const.PIECES_PATH):
-    color_dir = const.PIECES_PATH+"/"+color
+images = {}
 
-    pieces[color] = {}
-    for filename in os.listdir(color_dir):
-        file_path = color_dir+"/"+filename
-        pieces[color][filename.split(".")[0]] = const.load_image(file_path).convert_alpha()
-        # pieces[color][filename.split(".")[0]].set_colorkey((0, 0, 0))
+def load_images(path):
+    images = {}
+
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        current_dir = images
+        if dirpath != path:
+            for dir in dirpath.split(path)[1].split("/")[1:]:
+                current_dir = current_dir[dir]
+
+        for dirname in dirnames:
+            current_dir[dirname] = {}
+        
+        for filename in filenames:
+            if filename.split(".")[1] == "png":
+                current_dir[filename.split(".")[0]] = const.load_image(dirpath+"/"+filename).convert_alpha()
+    
+    return images
 
 def redrawGameWindow(board):
     display.fill((255, 255, 255))
@@ -33,10 +44,12 @@ def redrawGameWindow(board):
 def main():
     running = True
 
-    board = Board(0, 0)
-    board.center_board(WIDTH/2, HEIGHT/2)
-    turn = "w"
+    n = Network()
 
+    board = n.get_board()
+    color = n.get_color()
+
+    board.center_board(WIDTH/2, HEIGHT/2)
     board.update_pieces(pieces)
 
     while running:
@@ -52,15 +65,13 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                turn = board.select(turn, mouse_pos)
-                # for row in board.board:
-                #     print(row)
-                # print("\n\n\n")
-                if (result := board.checkmate()):
-                    print(result)
+
+                n.send(["select", mouse_pos])
+
+                if (result := n.send(["checkmate"])):
                     redrawGameWindow(board)
                     if result == "s":
-                        print("WHITE" if turn == "w" else "BLACK", "stalemate.")
+                        print("WHITE" if color == "w" else "BLACK", "stalemate.")
                     elif result == "d":
                         print("DRAW")
                     else:
