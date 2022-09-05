@@ -3,85 +3,73 @@ from piece import *
 import pygame
 
 class Board:
-    def __init__(self, x, y, pieces=None):
-        self.rect = self.board_image.get_rect(x=x, y=y)
+    def __init__(self, x, y):
+        self.rect = pygame.Rect(x, y, const.BOARD_SIZE, const.BOARD_SIZE)
         self.board_rect = pygame.Rect(self.rect.x+const.BOARD_BORDER, self.rect.x+const.BOARD_BORDER, self.rect.width-const.BOARD_BORDER*2, self.rect.height-const.BOARD_BORDER*2)
 
         self.turn = "w"
-
-        if pieces:
-            self.board_image = const.load_image(const.BOARD_IMAGE_PATH).convert()
-            self.dot_images = {"b": pieces['b']['dot'], "w": pieces['w']['dot']}
 
         self.rows = 8
         self.columns = 8
         self.board = [[None for x in range(self.columns)] for y in range(self.rows)]
 
-        self.board[0][0] = Rook(0, 0, "b", pieces)
-        self.board[0][1] = Knight(0, 1, "b", pieces)
-        self.board[0][2] = Bishop(0, 2, "b", pieces)
-        self.board[0][3] = Queen(0, 3, "b", pieces)
-        self.board[0][4] = King(0, 4, "b", pieces)
-        self.board[0][5] = Bishop(0, 5, "b", pieces)
-        self.board[0][6] = Knight(0, 6, "b", pieces)
-        self.board[0][7] = Rook(0, 7, "b", pieces)
+        self.board[0][0] = Rook(0, 0, "b")
+        self.board[0][1] = Knight(0, 1, "b")
+        self.board[0][2] = Bishop(0, 2, "b")
+        self.board[0][3] = Queen(0, 3, "b")
+        self.board[0][4] = King(0, 4, "b")
+        self.board[0][5] = Bishop(0, 5, "b")
+        self.board[0][6] = Knight(0, 6, "b")
+        self.board[0][7] = Rook(0, 7, "b")
 
-        self.board[1][0] = Pawn(1, 0, "b", pieces)
-        self.board[1][1] = Pawn(1, 1, "b", pieces)
-        self.board[1][2] = Pawn(1, 2, "b", pieces)
-        self.board[1][3] = Pawn(1, 3, "b", pieces)
-        self.board[1][4] = Pawn(1, 4, "b", pieces)
-        self.board[1][5] = Pawn(1, 5, "b", pieces)
-        self.board[1][6] = Pawn(1, 6, "b", pieces)
-        self.board[1][7] = Pawn(1, 7, "b", pieces)
+        self.board[1][0] = Pawn(1, 0, "b")
+        self.board[1][1] = Pawn(1, 1, "b")
+        self.board[1][2] = Pawn(1, 2, "b")
+        self.board[1][3] = Pawn(1, 3, "b")
+        self.board[1][4] = Pawn(1, 4, "b")
+        self.board[1][5] = Pawn(1, 5, "b")
+        self.board[1][6] = Pawn(1, 6, "b")
+        self.board[1][7] = Pawn(1, 7, "b")
 
-        self.board[7][0] = Rook(7, 0, "w", pieces)
-        self.board[7][1] = Knight(7, 1, "w", pieces)
-        self.board[7][2] = Bishop(7, 2, "w", pieces)
-        self.board[7][3] = Queen(7, 3, "w", pieces)
-        self.board[7][4] = King(7, 4, "w", pieces)
-        self.board[7][5] = Bishop(7, 5, "w", pieces)
-        self.board[7][6] = Knight(7, 6, "w", pieces)
-        self.board[7][7] = Rook(7, 7, "w", pieces)
+        self.board[7][0] = Rook(7, 0, "w")
+        self.board[7][1] = Knight(7, 1, "w")
+        self.board[7][2] = Bishop(7, 2, "w")
+        self.board[7][3] = Queen(7, 3, "w")
+        self.board[7][4] = King(7, 4, "w")
+        self.board[7][5] = Bishop(7, 5, "w")
+        self.board[7][6] = Knight(7, 6, "w")
+        self.board[7][7] = Rook(7, 7, "w")
 
-        self.board[6][0] = Pawn(6, 0, "w", pieces)
-        self.board[6][1] = Pawn(6, 1, "w", pieces)
-        self.board[6][2] = Pawn(6, 2, "w", pieces)
-        self.board[6][3] = Pawn(6, 3, "w", pieces)
-        self.board[6][4] = Pawn(6, 4, "w", pieces)
-        self.board[6][5] = Pawn(6, 5, "w", pieces)
-        self.board[6][6] = Pawn(6, 6, "w", pieces)
-        self.board[6][7] = Pawn(6, 7, "w", pieces)
+        self.board[6][0] = Pawn(6, 0, "w")
+        self.board[6][1] = Pawn(6, 1, "w")
+        self.board[6][2] = Pawn(6, 2, "w")
+        self.board[6][3] = Pawn(6, 3, "w")
+        self.board[6][4] = Pawn(6, 4, "w")
+        self.board[6][5] = Pawn(6, 5, "w")
+        self.board[6][6] = Pawn(6, 6, "w")
+        self.board[6][7] = Pawn(6, 7, "w")
 
         # Stalemate DEBUG
-        # self.board[0][0] = King(0, 0, "w", pieces)
-        # self.board[0][1] = Queen(0, 1, "w", pieces)
-        # self.board[0][7] = Rook(0, 7, "w", pieces)
-        # self.board[6][0] = Rook(6, 0, "w", pieces)
-        # self.board[1][5] = Rook(1, 5, "b", pieces)
-        # self.board[2][7] = Pawn(2, 7, "b", pieces)
-        # self.board[7][7] = King(7, 7, "b", pieces)
+        # self.board[0][0] = King(0, 0, "w")
+        # self.board[0][1] = Queen(0, 1, "w")
+        # self.board[0][7] = Rook(0, 7, "w")
+        # self.board[6][0] = Rook(6, 0, "w")
+        # self.board[1][5] = Rook(1, 5, "b")
+        # self.board[2][7] = Pawn(2, 7, "b")
+        # self.board[7][7] = King(7, 7, "b")
 
         # EN PASSANT DEBUG
-        # self.board[2][2] = Pawn(2, 2, "b", pieces)
-        # self.board[2][3] = Pawn(2, 3, "b", pieces)
-        # self.board[2][4] = Pawn(2, 4, "b", pieces)
-        # self.board[5][2] = Pawn(5, 2, "w", pieces)
-        # self.board[5][3] = Pawn(5, 3, "w", pieces)
-        # self.board[5][4] = Pawn(5, 4, "w", pieces)
+        # self.board[2][2] = Pawn(2, 2, "b")
+        # self.board[2][3] = Pawn(2, 3, "b")
+        # self.board[2][4] = Pawn(2, 4, "b")
+        # self.board[5][2] = Pawn(5, 2, "w")
+        # self.board[5][3] = Pawn(5, 3, "w")
+        # self.board[5][4] = Pawn(5, 4, "w")
 
         self.selected_piece = None
 
         self.attack_move_list = {"b":set(), "w":set()}
         self.last_moved_piece = []
-
-    def update_pieces(self, pieces):
-        for row in self.board:
-            for piece in row:
-                if piece != None:
-                    piece.image = pieces[piece.color][piece.piece]
-
-        self.dot_images = {"b": pieces['b']['dot'], "w": pieces['w']['dot']}
 
     def center_board(self, centerx, centery):
         self.rect.center = (centerx, centery)
@@ -287,8 +275,8 @@ class Board:
                         self.board[row][column].attacked = True
         return self.turn
 
-    def draw(self, display):
-        display.blit(self.board_image, self.rect)
+    def draw(self, display, images):
+        display.blit(images['board'], self.rect)
 
         offset = [self.rect.x + const.BOARD_BORDER, self.rect.y + const.BOARD_BORDER]
 
@@ -299,14 +287,14 @@ class Board:
         if self.selected_piece != None:
             for row, column in self.selected_piece.move_list:
                 if self.board[row][column] == None:
-                    display.blit(self.dot_images[self.selected_piece.color], (column*const.TILE_SIZE + offset[0], row*const.TILE_SIZE + offset[1]))
+                    display.blit(images['pieces'][self.selected_piece.color]['dot'], (column*const.TILE_SIZE + offset[0], row*const.TILE_SIZE + offset[1]))
 
         for row in range(self.rows):
             for column in range(self.columns):
                 if self.board[row][column] != None:
                     if self.board[row][column] == self.selected_piece:
                         continue
-                    self.board[row][column].draw(display, offset)
+                    self.board[row][column].draw(display, images, offset)
 
         if self.selected_piece != None:
-            self.selected_piece.draw(display, [self.rect.x + const.BOARD_BORDER, self.rect.y + const.BOARD_BORDER])
+            self.selected_piece.draw(display, images, [self.rect.x + const.BOARD_BORDER, self.rect.y + const.BOARD_BORDER])

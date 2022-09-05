@@ -1,20 +1,23 @@
 import socket
 from _thread import *
-import uuid
 import pickle
 from board import Board
 import const
 
-def threaded_client(conn, addr, games, connection):
-    game = games[connection % 2]
+games = []
+connections = 0
 
-    conn.send(pickle.dumps(game, "w" if connection % 2 == 0 else "b"))
+def threaded_client(conn, addr, connection):
+    global games, connections
+    game = games[connection // 2]
+
+    conn.send(pickle.dumps([addr, game, "w" if connection % 2 == 0 else "b"]))
 
     reply = ""
 
     while True:
         try:
-            data = conn.recv(2048)
+            data = conn.recv(4096)
             reply = pickle.loads(data)
 
             if not data:
@@ -28,14 +31,12 @@ def threaded_client(conn, addr, games, connection):
             break
     
     print("[LOST CONNECTION]")
-    conn.close()
     connections -= 1
+    conn.close()
 
 def start():
+    global games, connections
     server = socket.gethostbyname(socket.gethostname())
-
-    games = []
-    connections = 0
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((server, const.PORT))
@@ -53,7 +54,7 @@ def start():
             if connections % 2 == 1:
                 games.append(Board(0, 0))
 
-            start_new_thread(threaded_client, (conn, addr, games, connections))
+            start_new_thread(threaded_client, (conn, addr, connections))
 
 if __name__ == "__main__":
     start()

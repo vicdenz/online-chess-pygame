@@ -5,7 +5,7 @@ import const
 class Piece:
     piece = ""
 
-    def __init__(self, row, column, color, pieces=None):
+    def __init__(self, row, column, color):
         self.row = row
         self.column = column
         self.color = color
@@ -19,10 +19,7 @@ class Piece:
         self.last_pos = ()
         self.repetitions = 0
 
-        self.image = pygame.Surface((const.TILE_SIZE, const.TILE_SIZE)) if pieces == None else pieces[self.color][self.piece]
-
         self.outline = []
-        self.update_outline()
 
     def get_x(self):
         return self.column * const.TILE_SIZE
@@ -36,9 +33,9 @@ class Piece:
     def update_valid_moves(self, board):
         self.move_list = self.valid_moves(board)
 
-    def draw(self, display, offset):
+    def draw(self, display, images, offset):
         if offset != [0, 0]:
-            self.update_outline(offset)
+            self.update_outline(images['pieces'][self.color][self.piece], offset)
 
         if self.changed:
             pygame.draw.lines(display, const.LAST_MOVE_COLOR, False, self.outline, 5)
@@ -47,10 +44,10 @@ class Piece:
         if self.attacked:
             pygame.draw.lines(display, const.WARNING_COLOR, False, self.outline, 5)
 
-        display.blit(self.image, (self.get_x() + offset[0], self.get_y() + offset[1]))
+        display.blit(images['pieces'][self.color][self.piece], (self.get_x() + offset[0], self.get_y() + offset[1]))
 
-    def update_outline(self, offset=[0, 0]):
-        image_mask = pygame.mask.from_surface(self.image)
+    def update_outline(self, image, offset=[0, 0]):
+        image_mask = pygame.mask.from_surface(image)
 
         self.outline = [(p[0]+ self.get_x() + offset[0], p[1]+ self.get_y() + offset[1]) for p in image_mask.outline()]
 
@@ -71,8 +68,8 @@ class Piece:
 class Pawn(Piece):
     piece = "pawn"
 
-    def __init__(self, row, column, color, pieces):
-        super().__init__(row, column, color, pieces)
+    def __init__(self, row, column, color):
+        super().__init__(row, column, color)
         self.queen = False
         self.pawn = True
 
@@ -799,8 +796,8 @@ class Queen(Piece):
 class King(Piece):
     piece = "king"
 
-    def __init__(self, row, column, color, pieces):
-        super().__init__(row, column, color, pieces)
+    def __init__(self, row, column, color):
+        super().__init__(row, column, color)
         self.king = True
 
     def valid_moves(self, board):

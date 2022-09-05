@@ -10,9 +10,7 @@ display = pygame.Surface((WIDTH, HEIGHT))
 
 clock = pygame.time.Clock()
 
-images = {}
-
-def load_images(path):
+def load_images(path):#Loads multi depth directory of images into a dictionary
     images = {}
 
     for (dirpath, dirnames, filenames) in os.walk(path):
@@ -30,10 +28,12 @@ def load_images(path):
     
     return images
 
+images = load_images(const.IMAGE_PATH)
+
 def redrawGameWindow(board):
     display.fill((255, 255, 255))
 
-    board.draw(display)
+    board.draw(display, images)
 
     surf = pygame.transform.scale(display, (WIDTH, HEIGHT))
     surf_rect = surf.get_rect(center=(WIDTH/2, HEIGHT/2))
@@ -50,7 +50,6 @@ def main():
     color = n.get_color()
 
     board.center_board(WIDTH/2, HEIGHT/2)
-    board.update_pieces(pieces)
 
     while running:
         clock.tick(const.FPS)
@@ -82,4 +81,5 @@ def main():
         redrawGameWindow(board)
     pygame.quit()
 
-main()
+if __name__ == "__main__":
+    main()
