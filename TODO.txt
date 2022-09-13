@@ -1,0 +1,2 @@
+1. Triple Repetition stalemate
+2. Start online game(server, client)

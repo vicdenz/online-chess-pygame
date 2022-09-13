@@ -4,9 +4,9 @@ import pygame
 
 class Board:
     def __init__(self, x, y):
-        self.rect = pygame.Rect(x, y, const.BOARD_SIZE, const.BOARD_SIZE)
+        self.rect = pygame.Rect(x, y, const.BOARD_SIZE*const.IMAGE_MULTIPLIER, const.BOARD_SIZE*const.IMAGE_MULTIPLIER)
         self.board_rect = pygame.Rect(self.rect.x+const.BOARD_BORDER, self.rect.x+const.BOARD_BORDER, self.rect.width-const.BOARD_BORDER*2, self.rect.height-const.BOARD_BORDER*2)
-
+        
         self.turn = "w"
 
         self.rows = 8

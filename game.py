@@ -65,9 +65,9 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
 
-                n.send(["select", mouse_pos])
+                n.send("select", mouse_pos)
 
-                if (result := n.send(["checkmate"])):
+                if (result := n.send("checkmate")):
                     redrawGameWindow(board)
                     if result == "s":
                         print("WHITE" if color == "w" else "BLACK", "stalemate.")

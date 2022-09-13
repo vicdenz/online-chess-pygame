@@ -58,8 +58,6 @@ class Piece:
         self.row = pos[0]
         self.column = pos[1]
 
-        self.update_outline()
-
     def __str__(self):
         return str(self.piece) + " " + str(self.color) + " " + str(self.column) + " " + str(self.row)
 
