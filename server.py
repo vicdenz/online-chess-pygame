@@ -3,14 +3,17 @@ from _thread import *
 import pickle
 from board import Board
 import const
+import signal
+import sys
 
 games = []
-connections = 0
+connections = -1
 
 def threaded_client(conn, addr, connection):
     global games, connections
     game = games[connection // 2]
 
+    print(game)
     conn.send(pickle.dumps([addr, game, "w" if connection % 2 == 0 else "b"]))
 
     reply = ""
@@ -24,13 +27,18 @@ def threaded_client(conn, addr, connection):
                 print("[DISCONNECTED] from client:", addr)
                 break
             elif reply[0] == "select":
-                return conn.sendall(pickle.dumps(game.select(reply[1])))
+                game.select(reply[1])
             elif reply[0] == "checkmate":
-                return conn.sendall(pickle.dumps(game.checkmate()))
+                checkmate = game.checkmate()
+                conn.sendall(pickle.dumps(checkmate))
+                continue
+            conn.sendall(pickle.dumps(game))
         except:
             break
     
     print("[LOST CONNECTION]")
+    if connections % 2 == 0:
+        games.pop(-1)
     connections -= 1
     conn.close()
 
@@ -39,8 +47,18 @@ def start():
     server = socket.gethostbyname(socket.gethostname())
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((server, const.PORT))
+        try:
+            s.bind((server, const.PORT))
+        except OSError:
+            print('[CONNECTION ERROR] port:'+str(const.PORT), 'already in use.')
+            exit()
         s.listen(2)
+
+        def signal_int(sig, frame):
+            s.close()
+            print('[CLOSED] server closed by KeyboardInterrupt.')
+            sys.exit(0)
+        signal.signal(signal.SIGINT, signal_int)
 
         print("[STARTED] server.")
         print("[WAITING] for connection.")
@@ -51,7 +69,8 @@ def start():
 
             connections += 1
 
-            if connections % 2 == 1:
+            print(connections, games)
+            if connections % 2 == 0:
                 games.append(Board(0, 0))
 
             start_new_thread(threaded_client, (conn, addr, connections))

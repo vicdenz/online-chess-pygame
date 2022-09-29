@@ -6,22 +6,21 @@ class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addr = (socket.gethostbyname(socket.gethostname()), const.PORT)
-        self.id, self.board, self.color = self.connect()
+        self.id = 0
         print("[NEW CLIENT] server id")
-
-    def get_board(self):
-        return self.board
-
-    def get_color(self):
-        return self.color
 
     def connect(self):
         self.client.connect(self.addr)
-        return pickle.loads(self.client.recv(4096))
+        response = pickle.loads(self.client.recv(4096))
+        print(response)
+
+        self.id = response[0]
+        return response[1], response[2]
 
     def send(self, data):
         try:
             self.client.send(pickle.dumps(data))
-            return pickle.loads(self.client.recv(4096))
+            received = self.client.recv(4096)
+            return pickle.loads(received)
         except socket.error as e:
             print(e)

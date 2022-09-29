@@ -246,7 +246,7 @@ class Board:
                                 self.move_piece(start_pos, m_pos)
                                 self.board[start_pos[0]][start_pos[1]] = m_piece
                             
-                            return self.turn
+                            return self
 
                         self.selected_piece.moved = True
                         
@@ -260,7 +260,7 @@ class Board:
                         self.last_moved_piece = [start_pos, m_pos]
 
                         self.turn = self.invert_color(self.turn)
-                        return self.turn
+                        return self
 
                 elif self.board[m_row][m_column] == self.selected_piece:#reset the board if you click on the same piece
                     self.reset_selection()
@@ -273,9 +273,9 @@ class Board:
                 for row, column in self.selected_piece.move_list:
                     if self.board[row][column] != None and self.board[row][column].color != self.selected_piece.color:
                         self.board[row][column].attacked = True
-        return self.turn
+        return self
 
-    def draw(self, display, images):
+    def draw(self, display, images, color):
         display.blit(images['board'], self.rect)
 
         offset = [self.rect.x + const.BOARD_BORDER, self.rect.y + const.BOARD_BORDER]
@@ -284,7 +284,7 @@ class Board:
             for pos in self.last_moved_piece:
                 pygame.draw.rect(display, const.LAST_MOVE_COLOR, (pos[1]*const.TILE_SIZE + offset[0], pos[0]*const.TILE_SIZE + offset[1], const.TILE_SIZE, const.TILE_SIZE))
 
-        if self.selected_piece != None:
+        if self.selected_piece != None and self.turn == color:
             for row, column in self.selected_piece.move_list:
                 if self.board[row][column] == None:
                     display.blit(images['pieces'][self.selected_piece.color]['dot'], (column*const.TILE_SIZE + offset[0], row*const.TILE_SIZE + offset[1]))
