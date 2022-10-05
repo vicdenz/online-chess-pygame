@@ -13,8 +13,13 @@ def threaded_client(conn, addr, connection):
     global games, connections
     game = games[connection // 2]
 
-    print(game)
-    conn.send(pickle.dumps([addr, game, "w" if connection % 2 == 0 else "b"]))
+    color = ""
+    if game.started:
+        color = game.disconnected
+        game.disconnected = ""
+    else:
+        color = "w" if (connection % 2) == 0 else "b"
+    conn.send(pickle.dumps([addr, game, color]))
 
     reply = ""
 
@@ -28,10 +33,14 @@ def threaded_client(conn, addr, connection):
                 break
             elif reply[0] == "select":
                 game.select(reply[1])
-            elif reply[0] == "checkmate":
+            elif reply == "checkmate":
                 checkmate = game.checkmate()
                 conn.sendall(pickle.dumps(checkmate))
                 continue
+            elif reply == "quit":
+                game.disconnected = color
+                conn.sendall(pickle.dumps(checkmate))
+                break
             conn.sendall(pickle.dumps(game))
         except:
             break
@@ -39,6 +48,8 @@ def threaded_client(conn, addr, connection):
     print("[LOST CONNECTION]")
     if connections % 2 == 0:
         games.pop(-1)
+    else:
+        game.ready = False
     connections -= 1
     conn.close()
 
@@ -69,9 +80,10 @@ def start():
 
             connections += 1
 
-            print(connections, games)
             if connections % 2 == 0:
                 games.append(Board(0, 0))
+            else:
+                games[-1].ready = True
 
             start_new_thread(threaded_client, (conn, addr, connections))
 

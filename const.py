@@ -1,6 +1,6 @@
 import pygame
 
-PORT = 4000
+PORT = 3000
 
 IMAGE_PATH = "assets/images"
 
@@ -15,6 +15,9 @@ WARNING_COLOR = (255, 55, 33)
 LAST_MOVE_COLOR = (66, 135, 245)
 
 IMAGE_MULTIPLIER = 3
+
+def invert_color(color):
+    return "b" if color == "w" else "w"
 
 def load_image(path):
     image = pygame.image.load(path)

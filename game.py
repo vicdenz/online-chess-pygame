@@ -1,7 +1,7 @@
 import pygame
 from board import Board
 from network import Network
-import const, os
+import const, os, sys
 
 pygame.display.set_caption("Chess Game")
 WIDTH, HEIGHT = 750, 500
@@ -33,14 +33,6 @@ images = load_images(const.IMAGE_PATH)
 def word_color(color):
     return "WHITE" if color == "w" else "BLACK"
 
-def send_board(n, data):
-    board = n.send(data)
-
-    board.center_board(WIDTH/2, HEIGHT/2)
-
-    return board
-
-
 def redrawGameWindow(board, color):
     display.fill((255, 255, 255))
 
@@ -53,8 +45,6 @@ def redrawGameWindow(board, color):
     pygame.display.update()
 
 def main():
-    running = True
-
     n = Network()
 
     board, color = n.connect()
@@ -67,7 +57,34 @@ def main():
     board.center_board(WIDTH/2, HEIGHT/2)
     offset = [board.board_rect.x, board.board_rect.y]
 
-    mouse_pos = [0, 0]
+    def send(n, data):
+        global running
+
+        try:
+            data = n.send(data)
+
+            if type(data) == Board:
+                data.center_board(WIDTH/2, HEIGHT/2)
+
+            return data
+        except EOFError:
+            print('You won! Opponent has disconnected.')
+            pygame.quit()
+            sys.exit(0)
+
+    def check_game_over():
+        if (result := send(n, "checkmate")):
+            redrawGameWindow(board, color)
+            if result == "s":
+                print(word_color(color), "stalemate.")
+            elif result == "d":
+                print("DRAW")
+            else:
+                print(word_color(result), "has won!")
+            pygame.time.delay(2000)
+            pygame.quit()
+
+    running = True
     while running:
         clock.tick(const.FPS)
 
@@ -79,29 +96,24 @@ def main():
                 if event.key == pygame.K_LCTRL:
                     running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN and color == board.turn:
+            if event.type == pygame.MOUSEBUTTONDOWN and board.ready and color == board.turn:
                 mouse_pos = pygame.mouse.get_pos()
 
                 mouse_pos = [mouse_pos[0]-offset[0], mouse_pos[1]-offset[1]]
 
-                board = send_board(n, ["select", mouse_pos])
-                print(board)
+                board = send(n, ["select", mouse_pos])
+                print(board.selected_piece)
 
-                if (result := n.send(["checkmate"])):
-                    redrawGameWindow(board, color)
-                    if result == "s":
-                        print(word_color(color), "stalemate.")
-                    elif result == "d":
-                        print("DRAW")
-                    else:
-                        print(word_color(result), "has won!")
-                    pygame.time.delay(2000)
-                    running = False
+                check_game_over()
     
-        if color != board.turn:
-            board = send_board(n, "board")
+        if not board.ready or color != board.turn:
+            board = send(n, "board")
+
+            if board.ready:
+                check_game_over()
 
         redrawGameWindow(board, color)
+    send(n, "quit")
     pygame.quit()
 
 if __name__ == "__main__":

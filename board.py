@@ -7,6 +7,9 @@ class Board:
         self.rect = pygame.Rect(x, y, const.BOARD_SIZE*const.IMAGE_MULTIPLIER, const.BOARD_SIZE*const.IMAGE_MULTIPLIER)
         self.board_rect = pygame.Rect(self.rect.x+const.BOARD_BORDER, self.rect.x+const.BOARD_BORDER, self.rect.width-const.BOARD_BORDER*2, self.rect.height-const.BOARD_BORDER*2)
         
+        self.ready = False
+        self.started = False
+        self.disconnected = ""
         self.turn = "w"
 
         self.rows = 8
@@ -74,9 +77,6 @@ class Board:
     def center_board(self, centerx, centery):
         self.rect.center = (centerx, centery)
         self.board_rect.center = (centerx, centery)
-    
-    def invert_color(self, color):
-        return "b" if color == "w" else "w"
 
     def reset_selection(self):
         self.selected_piece = None
@@ -140,7 +140,7 @@ class Board:
                     if piece.color == turn and piece.king:
                         king = piece
 
-        if king.get_pos() in self.attack_move_list[self.invert_color(king.color)]:
+        if king.get_pos() in self.attack_move_list[const.invert_color(king.color)]:
             king.attacked = True
             return True
         return False
@@ -162,7 +162,7 @@ class Board:
         
         # check if all of the moves of the king are blocked and the king is in the attack move list.
         for king in kings:
-            enemy_color = self.invert_color(king.color)
+            enemy_color = const.invert_color(king.color)
             checkmate = False
 
             if set(king.move_list).issubset(self.attack_move_list[enemy_color]):
@@ -194,7 +194,8 @@ class Board:
             m_column = (mx - self.board_rect.x) // const.TILE_SIZE
 
             self.update_move_lists()
-            if self.selected_piece == None:#if no piece is selected, then select that piece
+
+            if self.selected_piece == None and not self.king_check(self.turn):#if no piece is selected, then select that piece
                 self.reset_selection()
 
                 m_piece = self.board[m_row][m_column]
@@ -248,6 +249,8 @@ class Board:
                             
                             return self
 
+                        self.started = True
+
                         self.selected_piece.moved = True
                         
                         if self.selected_piece.get_pos() == self.selected_piece.last_pos:
@@ -259,7 +262,16 @@ class Board:
 
                         self.last_moved_piece = [start_pos, m_pos]
 
-                        self.turn = self.invert_color(self.turn)
+                        self.turn = const.invert_color(self.turn)
+
+                        if self.king_check(self.turn):
+                            for row in self.board:
+                                for piece in row:
+                                    if piece != None:
+                                        if piece.color == self.turn and piece.king:
+                                            piece.selected = True
+                                            self.selected_piece = piece
+
                         return self
 
                 elif self.board[m_row][m_column] == self.selected_piece:#reset the board if you click on the same piece
