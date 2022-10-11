@@ -6,16 +6,13 @@ class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addr = (socket.gethostbyname(socket.gethostname()), const.PORT)
-        self.id = 0
-        print("[NEW CLIENT] server id")
+        print("[NEW CLIENT] server id:")
 
     def connect(self):
         self.client.connect(self.addr)
         response = pickle.loads(self.client.recv(4096))
-        print(response)
 
-        self.id = response[0]
-        return response[1], response[2]
+        return response
 
     def send(self, data):
         try:

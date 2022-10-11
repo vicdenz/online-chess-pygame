@@ -1,6 +1,6 @@
 import pygame
 
-PORT = 3000
+PORT = 5000
 
 IMAGE_PATH = "assets/images"
 

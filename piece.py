@@ -27,6 +27,9 @@ class Piece:
     def get_y(self):
         return (self.row-1) * const.TILE_SIZE
 
+    def get_pos(self):
+        return [self.row, self.column]
+
     def is_selected(self):
         return self.selected
 

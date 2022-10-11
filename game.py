@@ -51,6 +51,7 @@ def main():
     
     # board = Board(0, 0)
     # color = "w"
+    # board.ready = True
 
     print('You are', word_color(color))
 
@@ -72,7 +73,8 @@ def main():
             pygame.quit()
             sys.exit(0)
 
-    def check_game_over():
+    def check_game_over(board):
+        # if (result := board.checkmate()):
         if (result := send(n, "checkmate")):
             redrawGameWindow(board, color)
             if result == "s":
@@ -98,19 +100,19 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN and board.ready and color == board.turn:
                 mouse_pos = pygame.mouse.get_pos()
+                # board.select(mouse_pos)
+                # color = board.turn
 
                 mouse_pos = [mouse_pos[0]-offset[0], mouse_pos[1]-offset[1]]
-
                 board = send(n, ["select", mouse_pos])
-                print(board.selected_piece)
 
-                check_game_over()
+                check_game_over(board)
     
         if not board.ready or color != board.turn:
             board = send(n, "board")
 
             if board.ready:
-                check_game_over()
+                check_game_over(board)
 
         redrawGameWindow(board, color)
     send(n, "quit")

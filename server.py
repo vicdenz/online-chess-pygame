@@ -3,7 +3,6 @@ from _thread import *
 import pickle
 from board import Board
 import const
-import signal
 import sys
 
 games = []
@@ -19,7 +18,7 @@ def threaded_client(conn, addr, connection):
         game.disconnected = ""
     else:
         color = "w" if (connection % 2) == 0 else "b"
-    conn.send(pickle.dumps([addr, game, color]))
+    conn.send(pickle.dumps([game, color]))
 
     reply = ""
 
@@ -39,7 +38,6 @@ def threaded_client(conn, addr, connection):
                 continue
             elif reply == "quit":
                 game.disconnected = color
-                conn.sendall(pickle.dumps(checkmate))
                 break
             conn.sendall(pickle.dumps(game))
         except:
@@ -58,6 +56,7 @@ def start():
     server = socket.gethostbyname(socket.gethostname())
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((server, const.PORT))
         except OSError:
@@ -65,27 +64,27 @@ def start():
             exit()
         s.listen(2)
 
-        def signal_int(sig, frame):
-            s.close()
-            print('[CLOSED] server closed by KeyboardInterrupt.')
-            sys.exit(0)
-        signal.signal(signal.SIGINT, signal_int)
-
         print("[STARTED] server.")
         print("[WAITING] for connection.")
 
-        while True:
-            conn, addr = s.accept()
-            print("[CONNECTED] to new client:", addr)
+        try:
+            while True:
+                conn, addr = s.accept()
+                print("[CONNECTED] to new client:", addr)
 
-            connections += 1
+                connections += 1
 
-            if connections % 2 == 0:
-                games.append(Board(0, 0))
-            else:
-                games[-1].ready = True
+                if connections % 2 == 0:
+                    games.append(Board(0, 0))
+                else:
+                    games[-1].ready = True
 
-            start_new_thread(threaded_client, (conn, addr, connections))
+                start_new_thread(threaded_client, (conn, addr, connections))
+        except KeyboardInterrupt:
+            # s.shutdown(socket.SHUT_RDWR)
+            s.close()
+            print('[CLOSED] server closed by KeyboardInterrupt.')
+            sys.exit(0)
 
 if __name__ == "__main__":
     start()
