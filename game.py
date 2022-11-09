@@ -69,7 +69,7 @@ def main():
 
             return data
         except EOFError:
-            print('You won! Opponent has disconnected.')
+            print('Game over! Opponent has disconnected.')
             pygame.quit()
             sys.exit(0)
 
@@ -109,10 +109,16 @@ def main():
                 check_game_over(board)
     
         if not board.ready or color != board.turn:
-            board = send(n, "board")
+            result = n.wait()
+            
+            if result == "start":
+                board = send(n, "board")
 
-            if board.ready:
-                check_game_over(board)
+            elif result == "ready":
+                board = send(n, "board")
+
+                if board.ready:
+                    check_game_over(board)
 
         redrawGameWindow(board, color)
     send(n, "quit")

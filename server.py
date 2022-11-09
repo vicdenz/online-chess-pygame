@@ -5,19 +5,14 @@ from board import Board
 import const
 import sys
 
-games = []
+#{board: {'w': conn, 'b': conn}, ...}
+games = {}
 connections = -1
 
-def threaded_client(conn, addr, connection):
+def threaded_client(game, color, addr):
     global games, connections
-    game = games[connection // 2]
+    conn = games[game][color]
 
-    color = ""
-    if game.started:
-        color = game.disconnected
-        game.disconnected = ""
-    else:
-        color = "w" if (connection % 2) == 0 else "b"
     conn.send(pickle.dumps([game, color]))
 
     reply = ""
@@ -31,7 +26,12 @@ def threaded_client(conn, addr, connection):
                 print("[DISCONNECTED] from client:", addr)
                 break
             elif reply[0] == "select":
-                game.select(reply[1])
+                return_code = game.select(reply[1])
+
+                if return_code == 2:
+                    other_color = const.invert_color(color)
+                    print('[SEND DATA] to other client:', other_color)
+                    games[game][other_color].sendall(pickle.dumps("ready"))
             elif reply == "checkmate":
                 checkmate = game.checkmate()
                 conn.sendall(pickle.dumps(checkmate))
@@ -45,7 +45,7 @@ def threaded_client(conn, addr, connection):
     
     print("[LOST CONNECTION]")
     if connections % 2 == 0:
-        games.pop(-1)
+        games.pop(game)
     else:
         game.ready = False
     connections -= 1
@@ -75,11 +75,23 @@ def start():
                 connections += 1
 
                 if connections % 2 == 0:
-                    games.append(Board(0, 0))
+                    games[Board(0, 0)] = {'w': None, 'b': None}
+                    current_game = list(games.keys())[-1]
                 else:
-                    games[-1].ready = True
+                    current_game = list(games.keys())[-1]
+                    current_game.ready = True
+                    games[current_game]['w'].sendall(pickle.dumps("start"))
 
-                start_new_thread(threaded_client, (conn, addr, connections))
+                color = ""
+                if current_game.started:
+                    color = current_game.disconnected
+                    current_game.disconnected = ""
+                else:
+                    color = "w" if (connections % 2) == 0 else "b"
+
+                games[current_game][color] = conn
+
+                start_new_thread(threaded_client, (current_game, color, addr))
         except KeyboardInterrupt:
             # s.shutdown(socket.SHUT_RDWR)
             s.close()

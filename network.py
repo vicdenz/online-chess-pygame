@@ -6,7 +6,7 @@ class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addr = (socket.gethostbyname(socket.gethostname()), const.PORT)
-        print("[NEW CLIENT] server id:")
+        # print("[NEW CLIENT] server id:")
 
     def connect(self):
         self.client.connect(self.addr)
@@ -21,3 +21,12 @@ class Network:
             return pickle.loads(received)
         except socket.error as e:
             print(e)
+    
+    def wait(self):
+        try:
+            received = self.client.recv(4096, socket.MSG_DONTWAIT)
+
+            if received != b'':
+                return pickle.loads(received)
+        except socket.error as e:
+            pass
